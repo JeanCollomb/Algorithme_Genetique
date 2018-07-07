@@ -14,8 +14,8 @@ from class_ga import Algorithme_Genetique
 ###############################################################################
 ###----> Parametres
 
-nombre_individus         = 100
-nombre_generation        = 20
+nombre_individus         = 20
+nombre_generation        = 10
 probabilite_mutation     = 0.05
 probabilite_croisement   = 0.25
 probabilite_ellitisme    = 0.1
@@ -44,15 +44,16 @@ exemple = Algorithme_Genetique(parametres_algorithme, parametres_produit)
 ###----> Population initiale
 
 exemple.fct_initialisation_population()
-exemple.population_initiale
 a = exemple.population_generation
-aa = exemple.population_generation_old
-
-#exemple.fct_mutation()
-#b = exemple.population_generation
+b = exemple.population_generation_old
 
 exemple.fct_croisement()
 c = exemple.population_generation
+
+#exemple.fct_optimisation_simple()
+
+#exemple.fct_mutation()
+#b = exemple.population_generation
 
 ###############################################################################
 ###############################################################################

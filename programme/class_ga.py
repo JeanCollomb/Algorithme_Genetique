@@ -12,6 +12,7 @@ from numpy import array, zeros, savetxt
 from random import uniform, randint, choice
 
 
+
 ###############################################################################
 
 class Algorithme_Genetique () :
@@ -40,6 +41,20 @@ class Algorithme_Genetique () :
         self.nombre_individus_ellistisme= int(round(self.nombre_individus * self.probabilite_ellitisme,0))
     
     ###---------------------------------------------------------------------###
+    ###--------------> Fonctions objective et contraintes
+    def fct_fonction_objective (self):
+        '''
+        '''
+        
+        #--- Exemple
+        for individu in range(self.nombre_individus):
+            self.population_generation[individu][-1] = self.population_generation[individu][2] * self.population_generation[individu][3] * self.population_generation[individu][4]
+        
+        #--- Ne pas modifier
+        self.population_generation_old = array(sorted(self.population_generation.tolist(), key = lambda x: x[-1], reverse = True))
+    
+    
+    ###---------------------------------------------------------------------###
     ###--------------> Creation de la population initiale
     def fct_initialisation_population (self) :
         '''
@@ -56,7 +71,8 @@ class Algorithme_Genetique () :
             for continu in range(len(self.parametres_continus)):
                 self.population_initiale[individu][len(self.parametres_discrets) + continu] = uniform(self.parametres_continus[continu][0], self.parametres_continus[continu][1])
         
-        self.population_generation_old = self.population_initiale
+        self.population_generation = self.population_initiale
+        self.fct_fonction_objective()
         
     ###---------------------------------------------------------------------###
     ###--------------> Fonction de croisement, selection et mutation
@@ -65,9 +81,10 @@ class Algorithme_Genetique () :
         Fonction permettant la sauvegarde de la generation."
         '''
         self.population_generation_old = self.population_generation
-        savetxt('generations.ppj', self.population_generation_old, delimiter = '   ')
+        fichier_export = open('generations.ppj', 'ab')
+        savetxt(fichier_export, self.population_generation_old, delimiter = '   ')
+        fichier_export.close()
         
-    
     def fct_mutation (self) :
         '''
         Fonction permettant de creer des individus mutes de manière aléatoire 
@@ -93,8 +110,8 @@ class Algorithme_Genetique () :
         '''
         
         for individu in range(self.nombre_individus_croisement):
-            id_pere = randint(0, self.nombre_individus)
-            id_mere = randint(0, self.nombre_individus)
+            id_pere = randint(0, self.nombre_individus-1)
+            id_mere = randint(0, self.nombre_individus-1)
             
             for discret in range(len(self.parametres_discrets)):
                 self.population_generation[individu][discret] = choice([self.population_generation_old[id_pere][discret], self.population_generation_old[id_mere][discret]])
@@ -110,14 +127,12 @@ class Algorithme_Genetique () :
     
     def fct_selection_duel (self) :
         '''
+        Fonction permettant de confronter deux individus aléatoire et de
+        sélectionner le meilleur pour la génération suivante.
         '''
         
         pass
 
-    ###---------------------------------------------------------------------###
-    ###--------------> Fonctions objective et contraintes
-    
-    
     ###---------------------------------------------------------------------###
     ###--------------> Optimisaton simple - boucle sur les générations
     def fct_optimisation_simple (self) :
@@ -131,7 +146,6 @@ class Algorithme_Genetique () :
             self.fct_mutation()
             self.fct_sauvegarde_generation()
         
-        pass
     
     
     ###---------------------------------------------------------------------###
