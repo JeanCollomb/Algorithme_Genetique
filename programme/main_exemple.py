@@ -45,10 +45,14 @@ exemple = Algorithme_Genetique(parametres_algorithme, parametres_produit)
 
 exemple.fct_initialisation_population()
 exemple.population_initiale
-exemple.population_generation_old
+a = exemple.population_generation
+aa = exemple.population_generation_old
 
-exemple.fct_mutation()
-a= exemple.population_generation
+#exemple.fct_mutation()
+#b = exemple.population_generation
+
+exemple.fct_croisement()
+c = exemple.population_generation
 
 ###############################################################################
 ###############################################################################
