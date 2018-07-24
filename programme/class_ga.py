@@ -46,16 +46,32 @@ class Algorithme_Genetique () :
         '''
         '''
         
-        #--- Exemple
-        for individu in range(self.nombre_individus):
-            self.population_generation[individu][-1] = self.population_generation[individu][2] * self.population_generation[individu][3] * self.population_generation[individu][4]
+        #--- Exemple : FL3/48EI
+        F = 700
+        L = 850
         
-        #--- Ne pas modifier
-        self.population_generation_old = array(sorted(self.population_generation.tolist(), key = lambda x: x[-1], reverse = True))
-    
+        for individu in range(self.nombre_individus):
+            
+            if self.population_generation[individu][0] == 0:
+                E = 210000
+            elif self.population_generation[individu][0] == 1:
+                E = 70000
+            else:
+                E = 150000
+            
+            I = (self.population_generation[individu][1]*self.population_generation[individu][2]**3)/12
+            self.population_generation[individu][-1] = (F*L**3)/(48*E*I)
+             
     
     ###---------------------------------------------------------------------###
     ###--------------> Creation de la population initiale
+    def fct_tri(self) :
+        '''
+        Fonction permettant de trier les individus en fonction de la fonction
+        objective
+        '''
+        self.population_generation_old = array(sorted(self.population_generation.tolist(), key = lambda x: x[-1], reverse = False)).copy()
+    
     def fct_initialisation_population (self) :
         '''
         Fonction permettant la création d'un attribut 'population initiale' 
@@ -71,8 +87,9 @@ class Algorithme_Genetique () :
             for continu in range(len(self.parametres_continus)):
                 self.population_initiale[individu][len(self.parametres_discrets) + continu] = uniform(self.parametres_continus[continu][0], self.parametres_continus[continu][1])
         
-        self.population_generation = self.population_initiale
+        self.population_generation = self.population_initiale.copy()
         self.fct_fonction_objective()
+        self.fct_tri()
         
     ###---------------------------------------------------------------------###
     ###--------------> Fonction de croisement, selection et mutation
@@ -103,27 +120,33 @@ class Algorithme_Genetique () :
                 if test_proba <= self.probabilite_mutation :
                     self.population_generation[individu][len(self.parametres_discrets) + continu] = uniform(self.parametres_continus[continu][0], self.parametres_continus[continu][1])
             
+    def fct_selection_ellistisme (self) :
+        '''
+        Fonction permettant de selectionner les meilleurs individus de la generation
+        pour les integrer a la generation suivante.
+        '''
+        
+        for individu in range(self.nombre_individus_ellistisme):
+            self.population_generation[individu] = self.population_generation_old[individu].copy()
+    
     def fct_croisement (self) :
         '''
         Fonction permettant de creer des individus croises de manière aléatoire
         dans la nouvelle génération.
         '''
+        nombre_ind_mutes = self.nombre_individus_mutation
         
         for individu in range(self.nombre_individus_croisement):
             id_pere = randint(0, self.nombre_individus-1)
             id_mere = randint(0, self.nombre_individus-1)
             
             for discret in range(len(self.parametres_discrets)):
-                self.population_generation[individu][discret] = choice([self.population_generation_old[id_pere][discret], self.population_generation_old[id_mere][discret]])
+                self.population_generation[nombre_ind_mutes + individu][discret] = choice([self.population_generation_old[id_pere][discret], self.population_generation_old[id_mere][discret]])
             
             for continu in range(len(self.parametres_continus)):
-                self.population_generation[individu][len(self.parametres_discrets) + continu] = choice([self.population_generation_old[id_pere][len(self.parametres_discrets) + continu], self.population_generation_old[id_mere][len(self.parametres_discrets) + continu]])
+                self.population_generation[nombre_ind_mutes + individu][len(self.parametres_discrets) + continu] = choice([self.population_generation_old[id_pere][len(self.parametres_discrets) + continu], self.population_generation_old[id_mere][len(self.parametres_discrets) + continu]])
     
-    def fct_selection_ellistisme (self) :
-        '''
-        '''
-        
-        pass
+    
     
     def fct_selection_duel (self) :
         '''
@@ -140,8 +163,9 @@ class Algorithme_Genetique () :
         '''
         
         for generation in range(self.nombre_generation) :
-            self.fct_croisement()
+            self.fct_tri()
             self.fct_selection_ellistisme()
+            self.fct_croisement()
             self.fct_selection_duel
             self.fct_mutation()
             self.fct_sauvegarde_generation()

@@ -14,14 +14,14 @@ from class_ga import Algorithme_Genetique
 ###############################################################################
 ###----> Parametres
 
-nombre_individus         = 20
-nombre_generation        = 10
+nombre_individus         = 100
+nombre_generation        = 50
 probabilite_mutation     = 0.05
 probabilite_croisement   = 0.25
 probabilite_ellitisme    = 0.1
 
-parametres_discrets      = [['eau', 'huile'], ['acier', 'aluminium', 'cuivre']]
-parametres_continus      = [[1, 10], [0, 100], [0.3, 0.8]]
+parametres_discrets      = [['acier', 'aluminium', 'cuivre']]
+parametres_continus      = [[5, 30], [5, 50]]
 
 nombre_fonctions         = 1
 
@@ -44,11 +44,12 @@ exemple = Algorithme_Genetique(parametres_algorithme, parametres_produit)
 ###----> Population initiale
 
 exemple.fct_initialisation_population()
-a = exemple.population_generation
-b = exemple.population_generation_old
+a = exemple.population_generation.copy()
+b = exemple.population_generation_old.copy()
 
-exemple.fct_croisement()
-c = exemple.population_generation
+#exemple.fct_croisement()
+exemple.fct_selection_ellistisme()
+c = exemple.population_generation.copy()
 
 #exemple.fct_optimisation_simple()
 
