@@ -51,7 +51,7 @@ exemple = Algorithme_Genetique(parametres_algorithme, parametres_produit)
 #exemple.fct_selection_ellistisme()
 #c = exemple.population_generation.copy()
 
-#exemple.fct_optimisation_simple()
+exemple.fct_optimisation_simple()
 #a = exemple.fct_lecture_sauvegarde()
 #b = exemple.population_generation_old.copy()
 
