@@ -8,9 +8,11 @@ Class
 ###############################################################################
 ###----> Importation packages
 
-from numpy import array, zeros, savetxt
+from numpy import array, zeros, concatenate
 from random import uniform, randint, choice
-
+from pickle import dump as dp
+from pickle import load as ld
+from os import getcwd, mkdir
 
 
 ###############################################################################
@@ -39,6 +41,10 @@ class Algorithme_Genetique () :
         self.nombre_individus_mutation= int(round(self.nombre_individus * self.probabilite_mutation,0))
         self.nombre_individus_croisement= int(round(self.nombre_individus * self.probabilite_croisement,0))
         self.nombre_individus_ellistisme= int(round(self.nombre_individus * self.probabilite_ellitisme,0))
+        self.nombre_individus_duel      = self.nombre_individus - (self.nombre_individus_ellistisme + self.nombre_individus_croisement)
+        
+        self.dossier_travail            = getcwd()
+        self.dossier_sauvegarde         = self.dossier_travail + str('\sauvegarde')
     
     ###---------------------------------------------------------------------###
     ###--------------> Fonctions objective et contraintes
@@ -89,18 +95,46 @@ class Algorithme_Genetique () :
         
         self.population_generation = self.population_initiale.copy()
         self.fct_fonction_objective()
+        try:
+            mkdir(self.dossier_sauvegarde)
+        except:
+            pass
         self.fct_tri()
+        
+        with open(self.dossier_sauvegarde + str('\sauvegarde.ppj'), 'wb') as sauvegarde:
+            dp(self.population_generation_old, sauvegarde)
+            sauvegarde.close()
+        
+        self.population_generation_old= zeros((self.nombre_individus, self.nombre_fonction + len(self.parametres_discrets) + len(self.parametres_continus)))
+        self.population_generation    = zeros((self.nombre_individus, self.nombre_fonction + len(self.parametres_discrets) + len(self.parametres_continus)))
         
     ###---------------------------------------------------------------------###
     ###--------------> Fonction de croisement, selection et mutation
-    def fct_sauvegarde_generation (self, chemin = None):
+    def fct_sauvegarde_generation (self):
         '''
         Fonction permettant la sauvegarde de la generation."
         '''
-        self.population_generation_old = self.population_generation
-        fichier_export = open('generations.ppj', 'ab')
-        savetxt(fichier_export, self.population_generation_old, delimiter = '   ')
-        fichier_export.close()
+        
+        with open(self.dossier_sauvegarde + str('\sauvegarde.ppj'), 'rb') as lecture:
+            population_stockee = ld(lecture)
+            lecture.close()
+        
+        population = concatenate((population_stockee, self.population_generation_old))
+        
+        with open(self.dossier_sauvegarde + str('\sauvegarde.ppj'), 'wb') as sauvegarde:
+            dp(population, sauvegarde)
+            sauvegarde.close()
+        
+        self.population_generation_old= zeros((self.nombre_individus, self.nombre_fonction + len(self.parametres_discrets) + len(self.parametres_continus)))
+        self.population_generation    = zeros((self.nombre_individus, self.nombre_fonction + len(self.parametres_discrets) + len(self.parametres_continus)))
+        
+    def fct_lecture_sauvegarde (self):
+        '''
+        Fonction permettant la lecture du fichier sauvegarde."
+        '''
+        population_generation_stockee = ld(open(self.dossier_sauvegarde + str('\sauvegarde.ppj'), 'rb'))
+        self.population_generation_old = population_generation_stockee[-self.nombre_individus:]
+        return population_generation_stockee
         
     def fct_mutation (self) :
         '''
@@ -134,27 +168,38 @@ class Algorithme_Genetique () :
         Fonction permettant de creer des individus croises de manière aléatoire
         dans la nouvelle génération.
         '''
-        nombre_ind_mutes = self.nombre_individus_mutation
+        nombre_ind_ellite = self.nombre_individus_ellistisme
         
         for individu in range(self.nombre_individus_croisement):
             id_pere = randint(0, self.nombre_individus-1)
             id_mere = randint(0, self.nombre_individus-1)
             
             for discret in range(len(self.parametres_discrets)):
-                self.population_generation[nombre_ind_mutes + individu][discret] = choice([self.population_generation_old[id_pere][discret], self.population_generation_old[id_mere][discret]])
+                self.population_generation[nombre_ind_ellite + individu][discret] = choice([self.population_generation_old[id_pere][discret], self.population_generation_old[id_mere][discret]]).copy()
             
             for continu in range(len(self.parametres_continus)):
-                self.population_generation[nombre_ind_mutes + individu][len(self.parametres_discrets) + continu] = choice([self.population_generation_old[id_pere][len(self.parametres_discrets) + continu], self.population_generation_old[id_mere][len(self.parametres_discrets) + continu]])
-    
-    
+                self.population_generation[nombre_ind_ellite + individu][len(self.parametres_discrets) + continu] = choice([self.population_generation_old[id_pere][len(self.parametres_discrets) + continu], self.population_generation_old[id_mere][len(self.parametres_discrets) + continu]]).copy()
     
     def fct_selection_duel (self) :
         '''
         Fonction permettant de confronter deux individus aléatoire et de
         sélectionner le meilleur pour la génération suivante.
         '''
+        nombre_ind_ellite = self.nombre_individus_ellistisme
+        nombre_ind_croise = self.nombre_individus_croisement
         
-        pass
+        for individu in range(self.nombre_individus_duel):
+            id_1 = randint(0, self.nombre_individus-1)
+            id_2 = randint(0, self.nombre_individus-1)
+            
+            cout_1 = self.population_generation_old[id_1][-1]
+            cout_2 = self.population_generation_old[id_2][-1]
+            
+            if cout_1 < cout_2:
+                self.population_generation[nombre_ind_ellite + nombre_ind_croise + individu] = self.population_generation_old[id_1].copy()
+            else:
+                self.population_generation[nombre_ind_ellite + nombre_ind_croise + individu] = self.population_generation_old[id_2].copy()
+        
 
     ###---------------------------------------------------------------------###
     ###--------------> Optimisaton simple - boucle sur les générations
@@ -162,12 +207,16 @@ class Algorithme_Genetique () :
         '''
         '''
         
+        self.fct_initialisation_population()
+        
         for generation in range(self.nombre_generation) :
-            self.fct_tri()
+            self.fct_lecture_sauvegarde()
             self.fct_selection_ellistisme()
             self.fct_croisement()
-            self.fct_selection_duel
+            self.fct_selection_duel()
             self.fct_mutation()
+            self.fct_fonction_objective()
+            self.fct_tri()
             self.fct_sauvegarde_generation()
         
     
