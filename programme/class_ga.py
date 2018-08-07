@@ -72,6 +72,13 @@ class Algorithme_Genetique () :
             I = (b[individu] * h[individu]**3)/12
             self.population_generation[individu][-1] = (F*L**3)/(48*E*I)
              
+    def fct_fonctions_contraintes (self):
+        '''
+        Renseigner la fonction ou les fonctions contraintes.
+        Si aucune contrainte : faire un return None
+        '''
+        
+        return None
     
     ###---------------------------------------------------------------------###
     ###--------------> Creation de la population initiale
@@ -220,6 +227,7 @@ class Algorithme_Genetique () :
             self.fct_selection_duel()
             self.fct_mutation()
             self.fct_fonction_objective()
+            self.fct_fonctions_contraintes()
             self.fct_tri()
             self.fct_sauvegarde_generation()
         
