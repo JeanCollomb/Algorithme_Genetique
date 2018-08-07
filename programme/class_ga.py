@@ -50,11 +50,15 @@ class Algorithme_Genetique () :
     ###--------------> Fonctions objective et contraintes
     def fct_fonction_objective (self):
         '''
+        Fonction objective-cout à définir par l'utilisateur.
         '''
         
         #--- Exemple : FL3/48EI
         F = 700
         L = 850
+        
+        b = self.population_generation.transpose()[1]
+        h = self.population_generation.transpose()[2]
         
         for individu in range(self.nombre_individus):
             
@@ -65,7 +69,7 @@ class Algorithme_Genetique () :
             else:
                 E = 150000
             
-            I = (self.population_generation[individu][1]*self.population_generation[individu][2]**3)/12
+            I = (b[individu] * h[individu]**3)/12
             self.population_generation[individu][-1] = (F*L**3)/(48*E*I)
              
     
