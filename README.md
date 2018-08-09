@@ -21,7 +21,7 @@ Récupérer les fichiers :
 
 ```
 Pré-requis :
-- Posséder les packages : numpy, pickle, os, random
+- Posséder les packages : numpy, pickle, os, random, tqdm
 ```
 
 
