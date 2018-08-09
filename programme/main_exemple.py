@@ -14,8 +14,8 @@ from class_ga import Algorithme_Genetique
 ###############################################################################
 ###----> Parametres
 
-nombre_individus         = 150
-nombre_generation        = 500
+nombre_individus         = 25
+nombre_generation        = 200
 probabilite_mutation     = 0.1
 probabilite_croisement   = 0.4
 probabilite_ellitisme    = 0.1

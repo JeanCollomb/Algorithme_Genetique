@@ -8,18 +8,21 @@ Class
 ###############################################################################
 ###----> Importation packages
 
-from numpy import array, zeros, concatenate, savetxt
+from numpy import array, zeros, concatenate
 from random import uniform, randint, choice
 from pickle import dump as dp
 from pickle import load as ld
 from os import getcwd, mkdir
 from tqdm import tqdm
+from statistics import stdev, mean
+from matplotlib.pyplot import plot, fill_between, grid, title, xlabel, ylabel, legend, xlim, ylim, show, savefig
 
 
 ###############################################################################
 
 class Algorithme_Genetique () :
     '''
+    Optimisation par minimisation
     '''
     
     ###---------------------------------------------------------------------###
@@ -46,6 +49,7 @@ class Algorithme_Genetique () :
         
         self.dossier_travail            = getcwd()
         self.dossier_sauvegarde         = self.dossier_travail + str('\sauvegarde')
+        self.dossier_figures            = self.dossier_travail + str('\Figures')
     
     ###---------------------------------------------------------------------###
     ###--------------> Fonctions objective et contraintes
@@ -86,7 +90,7 @@ class Algorithme_Genetique () :
     def fct_tri(self) :
         '''
         Fonction permettant de trier les individus en fonction de la fonction
-        objective
+        objective. Tri par ordre croissant.
         '''
         self.population_generation_old = array(sorted(self.population_generation.tolist(), key = lambda x: x[-1], reverse = False)).copy()
     
@@ -124,7 +128,8 @@ class Algorithme_Genetique () :
     ###--------------> Fonction de croisement, selection et mutation
     def fct_sauvegarde_generation (self, sauvegarde_texte = False):
         '''
-        Fonction permettant la sauvegarde de la generation."
+        Fonction permettant la sauvegarde en fichier binaire de toutes les populations.
+        Fonction permettant la sauvegarde dans un fichier texte de la dernière génération.
         '''
         
         with open(self.dossier_sauvegarde + str('\sauvegarde.ppj'), 'rb') as lecture:
@@ -155,7 +160,7 @@ class Algorithme_Genetique () :
         
     def fct_lecture_sauvegarde (self):
         '''
-        Fonction permettant la lecture du fichier sauvegarde."
+        Fonction permettant la lecture du fichier binaire de sauvegarde.
         '''
         population_generation_stockee = ld(open(self.dossier_sauvegarde + str('\sauvegarde.ppj'), 'rb'))
         self.population_generation_old = population_generation_stockee[-self.nombre_individus:]
@@ -247,8 +252,54 @@ class Algorithme_Genetique () :
                 self.fct_sauvegarde_generation(sauvegarde_texte = True)
             else :
                 self.fct_sauvegarde_generation(sauvegarde_texte = False)
+        self.fct_graph_convergence()
         
+    ###---------------------------------------------------------------------###
+    ###--------------> Post traitement
     
+    def fct_graph_convergence(self):
+        '''
+        Fonction permettant de tracer l'évolution au cours des générations de :
+            - la valeur moyenne et écart-type de la fonction objective
+            - la valeur minimale de la fonction objective
+        '''
+        
+        try:
+            mkdir(self.dossier_figures)
+        except:
+            pass
+        
+        populations = self.fct_lecture_sauvegarde()
+        populations = list(map(list, zip(*populations)))
+        cout        = populations[-1]
+        
+        generations = []
+        best        = []
+        moyenne     = []
+        m_p_sigma   = []
+        m_m_sigma   = []
+        
+        for generation in range(self.nombre_generation):
+            gen_courante= cout[(generation * self.nombre_individus) : ((generation + 1) * self.nombre_individus)]
+            generations.append(generation+1)
+            best.append(min(gen_courante))
+            moyenne.append(mean(gen_courante[:-self.nombre_individus_mutation]))
+            m_p_sigma.append(mean(gen_courante[:-self.nombre_individus_mutation]) + stdev(gen_courante[:-self.nombre_individus_mutation]))
+            m_m_sigma.append(mean(gen_courante[:-self.nombre_individus_mutation]) - stdev(gen_courante[:-self.nombre_individus_mutation]))
+        
+        plot(generations, moyenne, label = 'moyenne')
+        plot(generations, best, label = 'meilleur')
+        fill_between(generations, moyenne, m_p_sigma, facecolor='grey', alpha='0.5')
+        fill_between(generations, moyenne, m_m_sigma, facecolor='grey', alpha='0.5')
+        grid(True)
+        legend(loc='best')
+        xlim([0, self.nombre_generation])
+        ylim([0, round(max(m_p_sigma))])
+        xlabel('Génération')
+        ylabel('Coût')
+        title("Convergence de l'algorithme")
+        show()
+        savefig(self.dossier_figures + '\Figure_convergence.pdf')
     
     ###---------------------------------------------------------------------###
     ###--------------> Multi-optimisation - Variation des donnees de l'algorithme
