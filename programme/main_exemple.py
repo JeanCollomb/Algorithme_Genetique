@@ -16,8 +16,8 @@ from class_ga import Algorithme_Genetique
 
 nombre_individus         = 150
 nombre_generation        = 500
-probabilite_mutation     = 0.05
-probabilite_croisement   = 0.25
+probabilite_mutation     = 0.1
+probabilite_croisement   = 0.4
 probabilite_ellitisme    = 0.1
 
 parametres_discrets      = [['acier', 'aluminium', 'cuivre']]

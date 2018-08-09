@@ -8,11 +8,12 @@ Class
 ###############################################################################
 ###----> Importation packages
 
-from numpy import array, zeros, concatenate
+from numpy import array, zeros, concatenate, savetxt
 from random import uniform, randint, choice
 from pickle import dump as dp
 from pickle import load as ld
 from os import getcwd, mkdir
+from tqdm import tqdm
 
 
 ###############################################################################
@@ -121,7 +122,7 @@ class Algorithme_Genetique () :
         
     ###---------------------------------------------------------------------###
     ###--------------> Fonction de croisement, selection et mutation
-    def fct_sauvegarde_generation (self):
+    def fct_sauvegarde_generation (self, sauvegarde_texte = False):
         '''
         Fonction permettant la sauvegarde de la generation."
         '''
@@ -136,6 +137,19 @@ class Algorithme_Genetique () :
             dp(population, sauvegarde)
             sauvegarde.close()
         
+        if sauvegarde_texte == True:
+            population_fin = self.population_generation_old.transpose().tolist()
+            for discret in range(len(self.parametres_discrets)):
+                for individu in range(self.nombre_individus):
+                    indice = int(population_fin[discret][individu])
+                    population_fin[discret][individu] = self.parametres_discrets[discret][indice]
+            population_fin = list(map(list, zip(*population_fin)))
+            with open(self.dossier_sauvegarde + str('\population_finale.txt'), 'w') as pop_fin:
+                for individu in population_fin :
+                    for parametre in individu :
+                        pop_fin.write(str(parametre) + '    ')
+                    pop_fin.write('\n')
+            
         self.population_generation_old= zeros((self.nombre_individus, self.nombre_fonction + len(self.parametres_discrets) + len(self.parametres_continus)))
         self.population_generation    = zeros((self.nombre_individus, self.nombre_fonction + len(self.parametres_discrets) + len(self.parametres_continus)))
         
@@ -220,7 +234,7 @@ class Algorithme_Genetique () :
         
         self.fct_initialisation_population()
         
-        for generation in range(self.nombre_generation) :
+        for generation in tqdm(range(self.nombre_generation), desc = 'Progression : ', bar_format = '{l_bar}{bar}') :
             self.fct_lecture_sauvegarde()
             self.fct_selection_ellistisme()
             self.fct_croisement()
@@ -229,7 +243,10 @@ class Algorithme_Genetique () :
             self.fct_fonction_objective()
             self.fct_fonctions_contraintes()
             self.fct_tri()
-            self.fct_sauvegarde_generation()
+            if generation == (self.nombre_generation -1)  :
+                self.fct_sauvegarde_generation(sauvegarde_texte = True)
+            else :
+                self.fct_sauvegarde_generation(sauvegarde_texte = False)
         
     
     
